@@ -1,2 +1,389 @@
-# Pausas Activas PRO
-Proyecto listo para GitHub Pages.
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Pausas Activas – Docente</title>
+
+    <style>
+        /* ------------------------------------------------------ */
+        /* ESTILO GLOBAL - OPTIMIZADO iOS             */
+        /* ------------------------------------------------------ */
+        :root {
+            --primary-color: #ff3f7a;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(180deg, #ffa4d3, #ffbf8b);
+            background-attachment: fixed;
+            height: 100vh;
+            /* Solución para el alto en navegadores móviles */
+            height: -webkit-fill-available;
+            display: flex;
+            justify-content: center;
+            color: #333;
+            overflow: hidden;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            /* Añade espacio para el notch arriba */
+            padding-top: var(--safe-top);
+        }
+
+        header {
+            padding: 20px 25px 10px 25px;
+            text-align: center;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #clock {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: white;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        /* Vistas */
+        .view {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            /* Suaviza el scroll en iOS */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .active { display: block; }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 22px;
+            margin-bottom: 18px;
+            font-size: 17px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h3 { margin: 0 0 8px 0; color: #444; }
+        .card p { margin: 0 0 15px 0; color: #666; font-size: 15px; }
+
+        /* Botón estilo NGL */
+        .btn {
+            background: var(--primary-color);
+            padding: 16px;
+            border-radius: 18px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            display: block;
+            border: none;
+            width: 100%;
+            font-size: 17px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .btn:active { transform: scale(0.96); opacity: 0.9; }
+
+        /* Navegación inferior adaptada a iOS */
+        nav {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.3);
+            padding: 12px 12px calc(12px + var(--safe-bottom)) 12px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        nav button {
+            background: transparent;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .activeTab {
+            background: white !important;
+            color: var(--primary-color) !important;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Timer Ejecución */
+        #timer {
+            text-align: center;
+            font-size: 70px;
+            margin: 30px 0;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Notificaciones */
+        #notificaciones {
+            position: fixed;
+            right: -100%;
+            top: 0;
+            width: 85%;
+            height: 100%;
+            background: white;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+            padding: calc(20px + var(--safe-top)) 20px 20px 20px;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        #notificaciones.open { right: 0; }
+
+        .notif-item {
+            padding: 15px;
+            background: #fff0f6;
+            margin-bottom: 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        #notifButton {
+            position: fixed;
+            bottom: calc(90px + var(--safe-bottom));
+            right: 20px;
+            background: white;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: none;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99;
+        }
+
+        /* Metas */
+        .meta-progress {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .meta-bar {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <header>Pausas Activas</header>
+    <div id="clock">00:00:00</div>
+
+    <div id="biblioteca" class="view active">
+        <div class="card">
+            <h3>Estiramiento de cuello</h3>
+            <p>Relaja la tensión cervical acumulada.</p>
+            <button class="btn" onclick="iniciarRutina('Estiramiento de cuello', 30)">Iniciar 30s</button>
+        </div>
+        <div class="card">
+            <h3>Movimiento de hombros</h3>
+            <p>Libera el peso de los hombros y trapecio.</p>
+            <button class="btn" onclick="iniciarRutina('Movimiento de hombros', 45)">Iniciar 45s</button>
+        </div>
+        <div class="card">
+            <h3>Respiración profunda</h3>
+            <p>Oxigena el cerebro y reduce el estrés.</p>
+            <button class="btn" onclick="iniciarRutina('Respiración profunda', 60)">Iniciar 60s</button>
+        </div>
+        </div>
+
+    <div id="historial" class="view">
+        <h2 style="color:white; margin-bottom:20px;">Tu Actividad</h2>
+        <div id="listaHistorial">
+            <p style="color:white; text-align:center; opacity:0.8;">Aún no hay registros.</p>
+        </div>
+    </div>
+
+    <div id="ejecucion" class="view">
+        <div class="card" style="text-align:center; margin-top:20px;">
+            <h2 id="rutinaNombre" style="color:var(--primary-color); margin:0;">Selecciona una rutina</h2>
+        </div>
+        <div id="timer">00:00</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <button class="btn" style="background:#666;" onclick="pausar()">Pausar</button>
+            <button class="btn" style="background:#aaa;" onclick="reiniciar()">Reiniciar</button>
+        </div>
+    </div>
+
+    <div id="metas" class="view">
+        <h2 style="color:white;">Mis Logros</h2>
+        <div class="card">
+            <h3>Pausas del día</h3>
+            <small id="meta1Label">0 de 3 completadas</small>
+            <div class="meta-progress"><div id="meta1Bar" class="meta-bar"></div></div>
+        </div>
+        <div class="card">
+            <h3>Tiempo total</h3>
+            <small id="meta2Label">0 de 10 minutos</small>
+            <div class="meta-progress"><div id="meta2Bar" class="meta-bar"></div></div>
+        </div>
+        <div id="badges" style="margin-top:20px;"></div>
+    </div>
+
+    <nav>
+        <button id="tab-biblioteca" class="activeTab" onclick="cambiarVista('biblioteca', this)">Rutinas</button>
+        <button id="tab-historial" onclick="cambiarVista('historial', this)">Historial</button>
+        <button id="tab-ejecucion" onclick="cambiarVista('ejecucion', this)">En curso</button>
+        <button id="tab-metas" onclick="cambiarVista('metas', this)">Metas</button>
+    </nav>
+
+    <button id="notifButton" onclick="toggleNotificaciones()">🔔</button>
+
+    <div id="notificaciones">
+        <button class="btn" style="margin-bottom:20px;" onclick="toggleNotificaciones()">Cerrar</button>
+        <h3>Mensajes</h3>
+        <div id="notifList"></div>
+    </div>
+</div>
+
+<script>
+    let tiempoRestante = 0;
+    let timerInterv;
+    let enMarcha = false;
+    let pausasCompletadas = 0;
+    let minutosAcumulados = 0;
+    let historial = [];
+
+    function cambiarVista(vistaId, btn) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(vistaId).classList.add('active');
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('activeTab'));
+        if(btn) btn.classList.add('activeTab');
+    }
+
+    function iniciarRutina(nombre, duracion) {
+        tiempoRestante = duracion;
+        enMarcha = true;
+        document.getElementById('rutinaNombre').innerText = nombre;
+        cambiarVista('ejecucion', document.getElementById('tab-ejecucion'));
+        
+        actualizarDisplayTimer();
+        
+        if(timerInterv) clearInterval(timerInterv);
+        
+        timerInterv = setInterval(() => {
+            if(enMarcha) {
+                tiempoRestante--;
+                actualizarDisplayTimer();
+                if(tiempoRestante <= 0) {
+                    clearInterval(timerInterv);
+                    finalizarRutina(nombre);
+                }
+            }
+        }, 1000);
+    }
+
+    function actualizarDisplayTimer() {
+        const m = Math.floor(tiempoRestante / 60);
+        const s = tiempoRestante % 60;
+        document.getElementById('timer').innerText = 
+            `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    function pausar() {
+        enMarcha = !enMarcha;
+        event.target.innerText = enMarcha ? "Pausar" : "Continuar";
+    }
+
+    function reiniciar() {
+        enMarcha = false;
+        clearInterval(timerInterv);
+        document.getElementById('timer').innerText = "00:00";
+        cambiarVista('biblioteca', document.getElementById('tab-biblioteca'));
+    }
+
+    function finalizarRutina(nombre) {
+        pausasCompletadas++;
+        minutosAcumulados += 1; // Simplificado a 1 min por rutina para el ejemplo
+        
+        // Vibración (si el dispositivo lo permite)
+        if(navigator.vibrate) navigator.vibrate(200);
+        
+        agregarNotificacion(`¡Felicidades! Terminaste: ${nombre}`);
+        actualizarMetas();
+        registrarHistorial(nombre);
+        
+        alert("¡Rutina completada! Excelente trabajo.");
+        reiniciar();
+    }
+
+    function registrarHistorial(nombre) {
+        const ahora = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        historial.unshift(`${ahora} - ${nombre}`);
+        const lista = document.getElementById('listaHistorial');
+        lista.innerHTML = historial.map(item => `<div class="card" style="margin-bottom:10px; padding:12px;">${item}</div>`).join('');
+    }
+
+    function actualizarMetas() {
+        const p1 = Math.min((pausasCompletadas / 3) * 100, 100);
+        document.getElementById('meta1Bar').style.width = p1 + '%';
+        document.getElementById('meta1Label').innerText = `${pausasCompletadas} de 3 completadas`;
+
+        const p2 = Math.min((minutosAcumulados / 10) * 100, 100);
+        document.getElementById('meta2Bar').style.width = p2 + '%';
+        document.getElementById('meta2Label').innerText = `${minutosAcumulados} de 10 minutos`;
+    }
+
+    function agregarNotificacion(msj) {
+        const list = document.getElementById('notifList');
+        const item = document.createElement('div');
+        item.className = 'notif-item';
+        item.innerText = msj;
+        list.prepend(item);
+    }
+
+    function toggleNotificaciones() {
+        document.getElementById('notificaciones').classList.toggle('open');
+    }
+
+    function actualizarReloj() {
+        const now = new Date();
+        document.getElementById("clock").innerText = now.toLocaleTimeString();
+    }
+    
+    setInterval(actualizarReloj, 1000);
+    actualizarReloj();
+</script>
+
+</body>
+</html>
